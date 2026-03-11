@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Data Migration Glue Crawler Stack
+
+Parameters:
+
+  DataLakeBucketName:
+    Type: String
+    Default: data-mig-set01
+
+  GlueDatabaseName:
+    Type: String
+    Default: migration_catalog_db
+
+  GlueRoleName:
+    Type: String
+    Default: data-migration-glue-role
+
+
+Resources:
+  BronzeCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: bronze-data-crawler
+      Role: !Ref GlueRoleName
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${DataLakeBucketName}/bronze/"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
+  SilverCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: silver-data-crawler
+      Role: !Ref GlueRoleName
+      DatabaseName: !Ref GlueDatabaseName
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${DataLakeBucketName}/silver/"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
+      

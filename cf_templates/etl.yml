@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Data Migration ETL Stack
+
+Parameters:
+
+  DataLakeBucketName:
+    Type: String
+
+  GlueRoleName:
+    Type: String
+    Default: data-migration-glue-role
+
+Resources:
+
+  BronzeToSilverJob:
+    Type: AWS::Glue::Job
+    Properties:
+      Name: bronze-to-silver-job
+      Role: !Ref GlueRoleName
+      Command:
+        Name: glueetl
+        ScriptLocation: !Sub s3://${DataLakeBucketName}/scripts/bronze_to_silver.py
+        PythonVersion: "3"
+      DefaultArguments:
+        "--job-language": python
+        "--enable-continuous-cloudwatch-log": "true"
+      GlueVersion: "4.0"
+      WorkerType: G.1X
+      NumberOfWorkers: 2
