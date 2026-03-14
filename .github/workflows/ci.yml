@@ -1,0 +1,52 @@
+name: CI/CD (CloudFormation deploy)
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    name: Validate CloudFormation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate CloudFormation templates
+        run: |
+          aws cloudformation validate-template --template-body file://cf_templates/glue-crawler.yaml
+          aws cloudformation validate-template --template-body file://cf_templates/s3_datalakes.yml
+
+  deploy:
+    name: Deploy CloudFormation (main only)
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: github-actions
+
+      - name: Deploy S3 Data Lake stack
+        run: |
+          aws cloudformation deploy \
+            --template-file cf_templates/s3_datalakes.yml \
+            --stack-name data-migration-datalake \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: Deploy Glue Crawler stack
+        run: |
+          aws cloudformation deploy \
+            --template-file cf_templates/glue-crawler.yaml \
+            --stack-name data-migration-glue-crawler \
+            --capabilities CAPABILITY_NAMED_IAM
