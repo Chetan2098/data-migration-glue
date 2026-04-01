@@ -29,7 +29,7 @@ jobs:
       - name: Validate CloudFormation templates
         run: |
           aws cloudformation validate-template --template-body file://cf_templates/glue-crawler.yaml
-          aws cloudformation validate-template --template-body file://cf_templates/setup.yaml
+          aws cloudformation validate-template --template-body file://cf_templates/setup.yml
 
   approval:
     name: Wait for deployment approval
@@ -60,13 +60,13 @@ jobs:
       - name: Deploy S3 Data Lake stack
         run: |
           aws cloudformation deploy \
-            --template-file cf_templates/setup.yaml \
+            --template-file cf_templates/setup.yml \
             --stack-name data-migration-datalake \
             --capabilities CAPABILITY_NAMED_IAM
 
       - name: Deploy Glue Crawler stack
         run: |
           aws cloudformation deploy \
-            --template-file cf_templates/glue-crawler.yaml \
+            --template-file cf_templates/glue-crawler.yml \
             --stack-name data-migration-glue-crawler \
             --capabilities CAPABILITY_NAMED_IAM
