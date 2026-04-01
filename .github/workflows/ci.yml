@@ -29,12 +29,22 @@ jobs:
       - name: Validate CloudFormation templates
         run: |
           aws cloudformation validate-template --template-body file://cf_templates/glue-crawler.yaml
-          aws cloudformation validate-template --template-body file://cf_templates/setup.yml
+          aws cloudformation validate-template --template-body file://cf_templates/setup.yaml
+
+  approval:
+    name: Wait for deployment approval
+    runs-on: ubuntu-latest
+    needs: validate
+    environment:
+      name: production
+    steps:
+      - name: Await environment approval
+        run: echo "Deployment approved via environment protection."
 
   deploy:
     name: Deploy CloudFormation (main only)
     runs-on: ubuntu-latest
-    needs: validate
+    needs: approval
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
@@ -50,7 +60,7 @@ jobs:
       - name: Deploy S3 Data Lake stack
         run: |
           aws cloudformation deploy \
-            --template-file cf_templates/s3_datalakes.yml \
+            --template-file cf_templates/setup.yaml \
             --stack-name data-migration-datalake \
             --capabilities CAPABILITY_NAMED_IAM
 
