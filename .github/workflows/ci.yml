@@ -20,7 +20,7 @@ jobs:
       - name: Validate CloudFormation templates
         run: |
           aws cloudformation validate-template --template-body file://cf_templates/glue-crawler.yaml
-          aws cloudformation validate-template --template-body file://cf_templates/s3_datalakes.yml
+          aws cloudformation validate-template --template-body file://cf_templates/setup.yml
 
   deploy:
     name: Deploy CloudFormation (main only)
